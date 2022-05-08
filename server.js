@@ -1,6 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 
+const paginatedResults = require('./paginatedResults');
+
 const app = express();
 
 app.set('view engine', 'ejs');
@@ -25,14 +27,33 @@ const acronymSchema = {
 
 const Acronym = mongoose.model('Acronym', acronymSchema);
 
-app.get('/acronym', (req, res) => {
-    Acronym.find((err, foundAcronyms) => {
-        if (err) {
-            res.send(err);
-        } else {
-            res.send(foundAcronyms);
-        }
-    });
+const db = mongoose.connection;
+
+db.once('open', async () => {
+    if (await Acronym.countDocuments().exec() > 0) return
+
+    Promise.all([
+        Acronym.create({ acronym: '2B', definition: 'To be' }),
+        Acronym.create({ acronym: '2EZ', definition: 'Too easy' }),
+        Acronym.create({ acronym: '2G2BT', definition: 'Too good to be true' }),
+        Acronym.create({ acronym: '2B', definition: 'To be' }),
+        Acronym.create({ acronym: '2EZ', definition: 'Too easy' }),
+        Acronym.create({ acronym: '2G2BT', definition: 'Too good to be true' }),
+        Acronym.create({ acronym: '2B', definition: 'To be' }),
+        Acronym.create({ acronym: '2EZ', definition: 'Too easy' }),
+        Acronym.create({ acronym: '2G2BT', definition: 'Too good to be true' }),
+        Acronym.create({ acronym: '2B', definition: 'To be' }),
+        Acronym.create({ acronym: '2EZ', definition: 'Too easy' }),
+        Acronym.create({ acronym: '2G2BT', definition: 'Too good to be true' }),
+        Acronym.create({ acronym: '2B', definition: 'To be' }),
+        Acronym.create({ acronym: '2EZ', definition: 'Too easy' }),
+        Acronym.create({ acronym: '2G2BT', definition: 'Too good to be true' }),
+    ]).then(() => console.log('Added Acronyms!'))
+})
+
+app.get('/acronym', paginatedResults(Acronym), (req, res) => {
+
+    res.json(res.paginatedResults);
 });
 
 app.post('/acronym', (req, res) => {
@@ -44,7 +65,7 @@ app.post('/acronym', (req, res) => {
 
     newAcronym.save((err) => {
         if (err) {
-            res.send(err);       
+            res.send(err);
         } else {
             res.send('New acronym added!');
         }
@@ -78,5 +99,5 @@ app.patch('/acronym/:acronymID', (req, res) => {
 const port = 3000 || process.env.PORT;
 
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}!`);
+    console.log(`Server is running on port ${port}!`);
 });
